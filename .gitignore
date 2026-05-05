@@ -1,0 +1,79 @@
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ------------------------------
+# Node.js / Next.js
+# ------------------------------
+node_modules/
+.next/
+out/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# ------------------------------
+# IDE / OS
+# ------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ------------------------------
+# Environment / secrets
+# ------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------
+# Runtime / local data
+# ------------------------------
+runtime/
+runtime_smoke/
+qdrant_data/
+data/
+logs/
+*.sqlite
+*.sqlite3
+*.db
+
+# Keep deploy templates and fixtures
+!deploy/**
+!tests/fixtures/**
+
+# ------------------------------
+# Docker
+# ------------------------------
+.docker/

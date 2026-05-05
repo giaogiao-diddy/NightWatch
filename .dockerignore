@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.git/
+.gitignore
+.env
+.env.*
+node_modules/
+.next/
+data/
+runtime/
+qdrant_data/
+tests/
+.vscode/

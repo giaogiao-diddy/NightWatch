@@ -1,0 +1,117 @@
+version: "3.9"
+
+x-nightwatch-env: &nightwatch-env
+  NW_ENVIRONMENT: prod
+  NW_LOG_LEVEL: INFO
+  NW_API_AUTH_KEY: ${NW_API_AUTH_KEY:-change-this-key}
+  NW_CONNECTORS_DEMO_FALLBACK: "false"
+  NW_GRAPH_CHECKPOINTER_BACKEND: sqlite
+  NW_SQLITE_MOUNT_DIR: /app/runtime
+  NW_GRAPH_CHECKPOINTER_SQLITE_PATH: /app/runtime/nightwatch_checkpoints.sqlite
+  NW_WORKER_RUNTIME_SQLITE_PATH: /app/runtime/nightwatch_runtime.sqlite
+  NW_QDRANT_URL: http://qdrant:6333
+
+x-nightwatch-volumes: &nightwatch-volumes
+  - ./runtime:/app/runtime
+
+services:
+  nightwatch-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nightwatch:prod
+    command: ["uvicorn", "nightwatch.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *nightwatch-env
+    volumes: *nightwatch-volumes
+    ports:
+      - "8000:8000"
+    depends_on:
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+  nightwatch-worker:
+    image: nightwatch:prod
+    command: ["python", "-m", "nightwatch.worker"]
+    environment: *nightwatch-env
+    volumes: *nightwatch-volumes
+    depends_on:
+      qdrant:
+        condition: service_started
+      nightwatch-app:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+  nightwatch-mcp:
+    image: nightwatch:prod
+    command: ["python", "-m", "nightwatch.mcp.server"]
+    environment:
+      <<: *nightwatch-env
+      NW_MCP_HOST: 0.0.0.0
+      NW_MCP_PORT: "9001"
+      NW_MCP_TRANSPORT: streamable-http
+    volumes: *nightwatch-volumes
+    ports:
+      - "9001:9001"
+    depends_on:
+      nightwatch-app:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.2
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      nightwatch-app:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - nightwatch-net
+
+networks:
+  nightwatch-net:
+    driver: bridge

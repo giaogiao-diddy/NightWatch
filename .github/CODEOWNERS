@@ -1,0 +1,8 @@
+# Replace the placeholder handle with real maintainers.
+* @your-github-id
+
+# Critical runtime paths
+/nightwatch/agent/ @your-github-id
+/nightwatch/healing/ @your-github-id
+/nightwatch/mcp/ @your-github-id
+/nightwatch/connectors/ @your-github-id

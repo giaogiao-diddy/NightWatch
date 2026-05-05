@@ -1,0 +1,70 @@
+{
+  "id": null,
+  "uid": "nightwatch-overview",
+  "title": "NightWatch Production Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Incidents Ingest Rate (5m)",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(nightwatch_incidents_total[5m]))",
+          "legendFormat": "incidents/s"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "RCA Latency P95 (5m)",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(nightwatch_rca_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Heal Verification Success Ratio (5m)",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(nightwatch_action_success_total{result=\"success\"}[5m])) / clamp_min(sum(rate(nightwatch_action_success_total[5m])), 1e-9)",
+          "legendFormat": "success_ratio"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}
