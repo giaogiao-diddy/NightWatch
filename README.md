@@ -28,56 +28,7 @@ NightWatch 聚焦一个最难但最有价值的生产问题：
 
 ## 系统架构
 
-```mermaid
-flowchart LR
-    A[Webhook / Alert Source\nAirflow Spark Flink] --> B[FastAPI Ingest API]
-    B --> C[Incident Normalizer + Correlator]
-    C --> D[LangGraph Orchestrator]
-
-    subgraph G[LangGraph State Machine]
-      D1[ingest_alert]
-      D2[retrieve_cases\nBM25 + Vector]
-      D3[diagnose_rca]
-      D4[plan_heal]
-      D5[guardrail_check]
-      D6[human_approval]
-      D7[execute_heal]
-      D8[verify_recovery]
-      D9[circuit_break]
-      D10[notify_owners]
-      D1 --> D2 --> D3 --> D4 --> D5
-      D5 -->|allow| D7 --> D8
-      D5 -->|require approval| D6 --> D7
-      D5 -->|block| D9
-      D8 --> D10
-      D9 --> D10
-    end
-
-    D --> H[(SQLite Checkpointer\nRuntime Store)]
-    D2 --> Q[(Qdrant Memory)]
-
-    D7 --> M[FastMCP Server\nTool Gateway]
-    D9 --> M
-    D10 --> M
-
-    subgraph E[Execution Engines / External Systems]
-      E1[Spark Control Plane]
-      E2[Scheduler API]
-      E3[Flink CDC API]
-      E4[GitHub / Jira]
-    end
-
-    M --> E1
-    M --> E2
-    M --> E3
-    M --> E4
-
-    B --> P[/metrics]
-    P --> O[Prometheus + Grafana]
-
-    F[Next.js Console] --> B
-    F --> P
-```
+![NightWatch 系统架构图](架构图.jpg)
 
 ---
 
